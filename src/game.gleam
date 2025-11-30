@@ -68,8 +68,28 @@ pub type GameState {
   GameState(current_room: String, rooms: List(Room), inventory: List(Item))
 }
 
+/// A message shown to the player after a command is processed
+type Message =
+  String
+
+/// Dispatch a Command to the appropriate handler function
+pub fn update(state: GameState, command: Command) -> #(GameState, Message) {
+  case command {
+    Look -> handle_look(state)
+    Move(dir) -> handle_move(state, dir)
+    Take(item) -> handle_take(state, item)
+    Inventory -> handle_inventory(state)
+    Help -> #(
+      state,
+      "Available commands:\nlook\ngo <direction>\ntake <item>\ninventory\nhelp\nquit",
+    )
+    Quit -> #(state, "Goodbye.")
+    Unknown(text) -> #(state, "I don't understand " <> text)
+  }
+}
+
 /// Convert a Direction into lowercase text
-pub fn direction_to_string(dir: Direction) -> String {
+fn direction_to_string(dir: Direction) -> String {
   case dir {
     North -> "north"
     East -> "east"
@@ -79,7 +99,7 @@ pub fn direction_to_string(dir: Direction) -> String {
 }
 
 /// Look up a room by name within the room list
-pub fn find_room(rooms: List(Room), name: String) -> Result(Room, Nil) {
+fn find_room(rooms: List(Room), name: String) -> Result(Room, Nil) {
   case rooms {
     [] -> Error(Nil)
 
@@ -106,35 +126,37 @@ fn find_exit(exits: List(Exit), dir: Direction) -> Result(Exit, Nil) {
   }
 }
 
-/// Dispatch a Command to the appropriate handler function
-pub fn update(state: GameState, command: Command) -> #(GameState, String) {
-  case command {
-    Look -> handle_look(state)
-    Move(dir) -> handle_move(state, dir)
-    Take(item) -> handle_take(state, item)
-    Inventory -> handle_inventory(state)
-    Help -> #(
-      state,
-      "Available commands:\nlook\ngo <direction>\ntake <item>\ninventory\nhelp\nquit",
-    )
-    Quit -> #(state, "Goodbye.")
-    Unknown(text) -> #(state, "I don't understand: " <> text)
-  }
-}
-
-/// Handle the LOOK command: show the room's name and description
-fn handle_look(state: GameState) -> #(GameState, String) {
+/// Handle the LOOK command: show the room's name, description, and items
+fn handle_look(state: GameState) -> #(GameState, Message) {
   let GameState(current_room, rooms, _) = state
 
   case find_room(rooms, current_room) {
     Error(Nil) -> #(state, "You are nowhere.")
 
-    Ok(Room(name, description, _, _)) -> #(state, name <> "\n" <> description)
+    Ok(room) -> {
+      let Room(name, description, _, items) = room
+
+      let item_text = case items {
+        [] -> "There are no items here."
+        _ -> {
+          let names =
+            list.map(items, fn(item) {
+              let Item(name) = item
+              "- " <> name
+            })
+          "You see here:\n" <> string.join(names, with: "\n")
+        }
+      }
+
+      let message = name <> "\n" <> description <> "\n\n" <> item_text
+
+      #(state, message)
+    }
   }
 }
 
 /// Handle movement: change current room if an exit matches
-fn handle_move(state: GameState, dir: Direction) -> #(GameState, String) {
+fn handle_move(state: GameState, dir: Direction) -> #(GameState, Message) {
   let GameState(current_room, rooms, inventory) = state
 
   case find_room(rooms, current_room) {
@@ -153,7 +175,7 @@ fn handle_move(state: GameState, dir: Direction) -> #(GameState, String) {
 }
 
 /// Handle taking an item: remove from room, add to inventory
-fn handle_take(state: GameState, item: Item) -> #(GameState, String) {
+fn handle_take(state: GameState, item: Item) -> #(GameState, Message) {
   let GameState(current_room, rooms, inventory) = state
 
   // Look up the room
@@ -207,7 +229,7 @@ fn handle_take(state: GameState, item: Item) -> #(GameState, String) {
 }
 
 /// Print the player inventory as a comma‑separated list
-fn handle_inventory(state: GameState) -> #(GameState, String) {
+fn handle_inventory(state: GameState) -> #(GameState, Message) {
   let GameState(_, _, inventory) = state
 
   case inventory {
