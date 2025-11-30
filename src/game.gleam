@@ -8,6 +8,8 @@
 ////     - Command: actions parsed from player input
 ////     - Room: locations in the world with exits and items
 ////     - GameState: the full world + player location + inventory
+////     - Exit: a directional connection to another room
+////     - Item: a named object that can be picked up
 ////
 //// • Public functions:
 ////     - direction_to_string: convert Direction to text
@@ -51,6 +53,9 @@ pub type Command {
   Move(Direction)
   Inventory
   Take(Item)
+  Unknown(String)
+  Quit
+  Help
 }
 
 /// A room in the world with its name, description, exits, and items
@@ -108,10 +113,16 @@ pub fn update(state: GameState, command: Command) -> #(GameState, String) {
     Move(dir) -> handle_move(state, dir)
     Take(item) -> handle_take(state, item)
     Inventory -> handle_inventory(state)
+    Help -> #(
+      state,
+      "Available commands:\nlook\ngo <direction>\ntake <item>\ninventory\nhelp\nquit",
+    )
+    Quit -> #(state, "Goodbye.")
+    Unknown(text) -> #(state, "I don't understand: " <> text)
   }
 }
 
-/// Handle movement by finding an Exit matching the direction and moving to its destination
+/// Handle the LOOK command: show the room's name and description
 fn handle_look(state: GameState) -> #(GameState, String) {
   let GameState(current_room, rooms, _) = state
 

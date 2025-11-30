@@ -1,5 +1,12 @@
 //// Parser module: converts raw user text into Command values
-//// Turns raw text input into `Command` values for the game engine.
+//// Supported commands:
+////   look
+////   inventory
+////   take <item>
+////   go <direction>
+////   help
+////   quit
+////   <anything else> → Unknown
 
 import game
 import gleam/list
@@ -17,7 +24,10 @@ pub fn parse(input: String) -> game.Command {
 
     "inventory" -> game.Inventory
 
-    _ -> parse_move(cleaned)
+    "help" -> game.Help
+    "quit" -> game.Quit
+
+    _ -> parse_take(cleaned)
   }
 }
 
@@ -34,20 +44,22 @@ fn parse_take(input: String) -> game.Command {
   let parts = words(cleaned)
 
   case parts {
-    ["take", item] -> game.Take(game.Item(item))
-    _ -> game.Look
+    ["take", ..rest] -> {
+      let item_name = string.join(rest, with: " ")
+      game.Take(game.Item(item_name))
+    }
+    _ -> parse_move(input)
+    // ← THIS is the fix
   }
 }
 
 /// Parse movement commands like "go north" into Move(Direction)
 fn parse_move(input: String) -> game.Command {
-  let parts = words(input)
-
-  case parts {
+  case words(input) {
     ["go", "north"] -> game.Move(game.North)
     ["go", "south"] -> game.Move(game.South)
     ["go", "east"] -> game.Move(game.East)
     ["go", "west"] -> game.Move(game.West)
-    _ -> parse_take(input)
+    _ -> game.Unknown(input)
   }
 }
