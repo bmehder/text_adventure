@@ -2,10 +2,10 @@
 # You typically do not need to edit this file
 
 packages = [
-  { name = "gleam_javascript", version = "1.0.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "gleam_javascript", source = "hex", outer_checksum = "EF6C77A506F026C6FB37941889477CD5E4234FCD4337FF0E9384E297CB8F97EB" },
   { name = "gleam_stdlib", version = "0.67.0", build_tools = ["gleam"], requirements = [], otp_app = "gleam_stdlib", source = "hex", outer_checksum = "6368313DB35963DC02F677A513BB0D95D58A34ED0A9436C8116820BF94BE3511" },
+  { name = "in", version = "1.1.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "in", source = "hex", outer_checksum = "5339494529936AF83EAA0B8368195DCA9505382836CDED4CD6B0F5F9FA93C2B8" },
 ]
 
 [requirements]
-gleam_javascript = { version = ">= 1.0.0 and < 2.0.0" }
-gleam_stdlib = { version = "~> 0.41" }
+gleam_stdlib = { version = ">= 0.44.0 and < 2.0.0" }
+in = { version = ">= 1.1.0 and < 2.0.0" }

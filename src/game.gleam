@@ -1,46 +1,27 @@
-//// Game Engine Module
+//// Game Engine
 ////
-//// This module defines the core logic for the text adventure engine.
-//// It includes:
+//// Core game logic:
+////  - Types representing rooms, items, directions, commands, and game state
+////  - `update` – applies a `Command` to the `GameState`
+////  - Pure helper functions for movement, room lookup, item handling, and text output
 ////
-//// • Core types:
-////  - Direction: possible movement directions
-////  - RoomName: wrapper for room identifiers
-////  - Description: wrapper for room text
-////  - Command: actions parsed from player input
-////  - Room: locations in the world with exits and items
-////  - GameState: the full world + player location + inventory
-////  - Exit: a directional connection to another room
-////  - Item: a named object that can be picked up
-////
-//// • Public functions:
-////  - update: apply a Command to a GameState and return the result
-////
-//// • Private helpers:
-////  - find_room: locate a room by name
-////  - Movement handling (find_exit, handle_move)
-////  - Room description (handle_look)
-////  - Item interaction (handle_take)
-////  - Inventory listing (handle_inventory)
-////  - direction_to_string: convert Direction to text
-////
-//// All updates are pure: `update` always returns a new GameState
-//// along with a textual message describing the outcome.
+//// All updates are pure: every command returns a new `GameState`
+//// together with a `Message` describing the result.
 
 import gleam/list
 import gleam/string
 
-/// A wrapper for room identifiers
+/// Identifier for a room
 pub type RoomName {
   RoomName(String)
 }
 
-/// A wrapper for room text
+/// Text describing a room
 pub type Description {
   Description(String)
 }
 
-/// Cardinal directions a player can move in
+/// Possible movement directions
 pub type Direction {
   North
   East
@@ -48,7 +29,7 @@ pub type Direction {
   West
 }
 
-/// A connection from one room to another in a given direction
+/// A directional link to another room
 pub type Exit {
   Exit(direction: Direction, destination: RoomName)
 }
@@ -58,7 +39,7 @@ pub type Item {
   Item(name: String)
 }
 
-/// Possible commands parsed from player input
+/// Actions the player can perform
 pub type Command {
   Look
   Move(Direction)
@@ -69,7 +50,7 @@ pub type Command {
   Help
 }
 
-/// A room in the world with its name (a Destination), description (a Description), exits, and items
+/// A room: its name, description, exits, and items
 pub type Room {
   Room(
     name: RoomName,
@@ -79,17 +60,17 @@ pub type Room {
   )
 }
 
-/// Overall game state: where the player is (a Destination), all rooms, and inventory
+/// Complete game state: current room, world rooms, and player inventory
 pub type GameState {
   GameState(current_room: RoomName, rooms: List(Room), inventory: List(Item))
 }
 
-/// A message shown to the player after a command is processed
+/// Text returned after processing a command
 pub type Message {
   Message(String)
 }
 
-/// Dispatch a Command to the appropriate handler function
+/// Apply a command to the current state and return the updated state and a message
 pub fn update(state: GameState, command: Command) -> #(GameState, Message) {
   case command {
     Look -> handle_look(state)
@@ -117,7 +98,7 @@ fn direction_to_string(dir: Direction) -> String {
   }
 }
 
-/// Look up a room by name within the room list
+/// Look up a room by its name
 fn find_room(rooms: List(Room), name: String) -> Result(Room, Nil) {
   case rooms {
     [] -> Error(Nil)
@@ -133,7 +114,7 @@ fn find_room(rooms: List(Room), name: String) -> Result(Room, Nil) {
   }
 }
 
-/// Find the exit (direction + destination) that matches the given direction
+/// Look up an exit matching the given direction
 fn find_exit(exits: List(Exit), dir: Direction) -> Result(Exit, Nil) {
   case exits {
     [] -> Error(Nil)
@@ -147,8 +128,7 @@ fn find_exit(exits: List(Exit), dir: Direction) -> Result(Exit, Nil) {
   }
 }
 
-/// Handle the LOOK command: produce a message showing the room's name,
-/// description, and any items present
+/// Produce a description of the current room
 fn handle_look(state: GameState) -> #(GameState, Message) {
   let GameState(current_room, rooms, _) = state
   let RoomName(room_name) = current_room
@@ -180,7 +160,7 @@ fn handle_look(state: GameState) -> #(GameState, Message) {
   }
 }
 
-/// Handle movement: change current room if an exit matches
+/// Attempt to move the player in the given direction
 fn handle_move(state: GameState, dir: Direction) -> #(GameState, Message) {
   let GameState(current_room, rooms, inventory) = state
   let RoomName(room_name) = current_room
@@ -200,7 +180,7 @@ fn handle_move(state: GameState, dir: Direction) -> #(GameState, Message) {
   }
 }
 
-/// Handle taking an item: remove from room, add to inventory
+/// Attempt to pick up an item from the current room
 fn handle_take(state: GameState, item: Item) -> #(GameState, Message) {
   let GameState(current_room, rooms, inventory) = state
   let RoomName(room_name) = current_room
@@ -259,7 +239,7 @@ fn handle_take(state: GameState, item: Item) -> #(GameState, Message) {
   }
 }
 
-/// Format the player inventory as a comma‑separated list in a message
+/// Produce a message listing the inventory contents
 fn handle_inventory(state: GameState) -> #(GameState, Message) {
   let GameState(_, _, inventory) = state
 

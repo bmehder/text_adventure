@@ -1,12 +1,16 @@
-//// world.gleam
-//// Contains all room definitions for the text adventure world.
+//// World Definition
+//// 
+//// Defines all rooms, descriptions, exits, and items that make up
+//// the game world. `initial_world` returns the complete list of rooms.
 
 import game.{
   type Room, Description, East, Exit, Item, North, Room, RoomName, South, West,
 }
 
+/// Name of the room where the player begins the game
 pub const starting_room = "Kaer Morhen Gate"
 
+/// Construct and return the full list of rooms in the world
 pub fn initial_world() -> List(Room) {
   let gate =
     Room(

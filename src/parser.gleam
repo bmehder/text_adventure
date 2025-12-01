@@ -1,18 +1,22 @@
-//// Parser module: converts raw user text into Command values
+//// Parser: converts cleaned user text into `Command` values.
+//// 
 //// Supported commands:
-////   look
-////   inventory
-////   take <item>
-////   go <direction>
-////   help
-////   quit
-////   <anything else> → Unknown
+////  - look
+////  - inventory
+////  - take <item>
+////  - go <direction>
+////  - help
+////  - quit
+////  - <anything else> → Unknown(command_text)
+////
+//// This module only handles text → Command parsing.
+//// Game logic is in `game.gleam`.
 
 import game
 import gleam/list
 import gleam/string
 
-/// Entry point: clean input and dispatch to specific parsers
+/// Clean input and convert it into a `Command` for the game to handle.
 pub fn parse(input: String) -> game.Command {
   let cleaned_input =
     input
@@ -34,16 +38,15 @@ pub fn parse(input: String) -> game.Command {
   }
 }
 
-/// Split text into non-empty words (handles multiple spaces)
+/// Split text into non-empty words, collapsing multiple spaces.
 fn words(text: String) -> List(String) {
   text
   |> string.split(" ")
   |> list.filter(fn(part) { part != "" })
 }
 
-/// Parse a `take` command. Accepts one or more words after "take"
-/// and treats them as an item name. If no item is provided,
-/// returns `Unknown`.
+/// Parse a `take` command. Everything after "take" is treated as the
+/// item name. If no item is provided, returns `Unknown`.
 fn parse_take(rest: List(String), raw: String) -> game.Command {
   case rest {
     [] -> game.Unknown(raw)
@@ -54,9 +57,8 @@ fn parse_take(rest: List(String), raw: String) -> game.Command {
   }
 }
 
-/// Parse a `go` command. Accepts a single direction after "go"
-/// and converts it to a `Move` command. If the direction is not
-/// recognized, returns `Unknown`.
+/// Parse a `go` command. Expects a single direction ("north", "south",
+/// "east", "west"). Anything else becomes `Unknown`.
 fn parse_move(rest: List(String), raw: String) -> game.Command {
   case rest {
     ["north"] -> game.Move(game.North)

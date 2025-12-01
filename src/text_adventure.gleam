@@ -1,44 +1,45 @@
-//// Text Adventure Engine Demo
+//// Text Adventure (Gleam on the BEAM)
 ////
-//// Basic Player Commands (as typed input):
+//// This game reads directly from standard input using the `in` package,
+//// running entirely on the BEAM with no external runtime required.
 ////
+//// Available Player Commands:
 //// • "look"
 ////     View the current room's name and description.
 ////
 //// • "go <direction>"
-////     Move to an adjacent room in the given direction.
-////     Valid directions are: north, south, east, west.
-////     Internally this is parsed into a `Move(Direction)` command.
+////     Move to an adjacent room. Valid directions: north, south, east, west.
+////     Parsed into a `Move(Direction)` command.
 ////
 //// • "take <item>"
-////     Pick up an item from the current room
-////     and add it to your inventory.
+////     Pick up an item from the current room and add it to your inventory.
 ////
 //// • "inventory"
-////     List all items the player is currently carrying.
-//// 
+////     Show all items you're currently carrying.
+////
 //// • "help"
-////    Display a list of available commands.
+////     Display available commands and short explanations.
 ////
 //// • "quit"
-////     Exit the game loop and end the program.
+////     Exit the game loop and end the program cleanly.
 ////
-//// This module sets up a small demo world and runs a scripted
-//// sequence of text commands using `run_script`, showing how:
-////   - parser.gleam turns strings into `Command` values
-////   - game.gleam updates `GameState` in response
-////   - output is printed for each command.
+//// How the modules work together:
+////   - parser.gleam converts raw text input into `Command` values.
+////   - game.gleam updates the `GameState` based on those commands.
+////   - world.gleam defines the rooms, items, and exits.
+////   - This file sets up the initial state and runs the interactive loop using
+////     direct stdin input via the `in` package.
 
 import game.{type GameState, GameState, Message, Quit, RoomName, update}
 import gleam/io
 import gleam/string
-import input
+import in
 import parser
 import world
 
-/// Entry point for the text adventure demo
+/// Entry point for the interactive text adventure
 pub fn main() -> GameState {
-  // Initialize the game.
+  // Initialize the world and starting game state.
   let state =
     GameState(
       current_room: RoomName(world.starting_room),
@@ -50,7 +51,9 @@ pub fn main() -> GameState {
 }
 
 fn game_loop(state: GameState) -> GameState {
-  let line = input.read_line("> ") |> string.trim
+  io.print("> ")
+  let assert Ok(line) = in.read_line()
+  let line = string.trim(line)
   let command = parser.parse(line)
   let #(new_state, output) = update(state, command)
 
