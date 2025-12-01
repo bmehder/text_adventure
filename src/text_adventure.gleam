@@ -29,7 +29,7 @@
 ////   - game.gleam updates `GameState` in response
 ////   - output is printed for each command.
 
-import game.{type GameState, GameState, Quit, update}
+import game.{type GameState, GameState, Message, Quit, RoomName, update}
 import gleam/io
 import gleam/string
 import input
@@ -37,11 +37,11 @@ import parser
 import world
 
 /// Entry point for the text adventure demo
-pub fn main() {
+pub fn main() -> GameState {
   // Initialize the game.
   let state =
     GameState(
-      current_room: world.starting_room,
+      current_room: RoomName(world.starting_room),
       rooms: world.initial_world(),
       inventory: [],
     )
@@ -50,18 +50,15 @@ pub fn main() {
 }
 
 fn game_loop(state: GameState) -> GameState {
-  let line = string.trim(read_one_line())
+  let line = input.read_line("> ") |> string.trim
   let command = parser.parse(line)
   let #(new_state, output) = update(state, command)
 
+  let Message(output) = output
   io.println(output)
 
   case command {
     Quit -> new_state
     _ -> game_loop(new_state)
   }
-}
-
-fn read_one_line() -> String {
-  input.read_line("> ")
 }

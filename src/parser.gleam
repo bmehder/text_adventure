@@ -22,8 +22,6 @@ pub fn parse(input: String) -> game.Command {
   let parts = words(cleaned_input)
 
   case parts {
-    [] -> game.Unknown(cleaned_input)
-
     ["look"] -> game.Look
     ["inventory"] -> game.Inventory
     ["help"] -> game.Help

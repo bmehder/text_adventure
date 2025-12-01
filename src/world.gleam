@@ -1,42 +1,94 @@
 //// world.gleam
 //// Contains all room definitions for the text adventure world.
 
-import game.{type Room, East, Exit, Item, North, Room, South, West}
+import game.{
+  type Room, Description, East, Exit, Item, North, Room, RoomName, South, West,
+}
 
 pub const starting_room = "Kaer Morhen Gate"
 
 pub fn initial_world() -> List(Room) {
-  let room =
+  let gate =
     Room(
-      name: "Kaer Morhen Gate",
-      description: "The old keep’s weathered entrance, battered by countless winters.",
+      name: RoomName("Kaer Morhen Gate"),
+      description: Description(
+        "The old keep’s weathered entrance, battered by countless winters.",
+      ),
       exits: [
-        Exit(North, "Training Yard"),
-        Exit(East, "Old Armory"),
-        Exit(West, "Keep Courtyard"),
+        Exit(North, RoomName("Training Yard")),
+        Exit(East, RoomName("Old Armory")),
+        Exit(West, RoomName("Keep Courtyard")),
       ],
       items: [Item("witcher medallion")],
     )
   let clearing =
     Room(
-      name: "Training Yard",
-      description: "Weathered practice dummies and broken swords lie scattered across the packed earth.",
-      exits: [Exit(South, "Kaer Morhen Gate"), Exit(East, "Old Armory")],
+      name: RoomName("Training Yard"),
+      description: Description(
+        "Weathered practice dummies and broken swords lie scattered across the packed earth.",
+      ),
+      exits: [
+        Exit(South, RoomName("Kaer Morhen Gate")),
+        Exit(East, RoomName("Old Armory")),
+      ],
       items: [Item("broken training sword")],
     )
   let armory =
     Room(
-      name: "Old Armory",
-      description: "Dusty racks of weathered blades and dented shields line the cold stone walls.",
-      exits: [Exit(West, "Training Yard")],
+      name: RoomName("Old Armory"),
+      description: Description(
+        "Dusty racks of weathered blades and dented shields line the cold stone walls.",
+      ),
+      exits: [Exit(West, RoomName("Training Yard"))],
       items: [Item("rusty short sword")],
     )
   let courtyard =
     Room(
-      name: "Keep Courtyard",
-      description: "A broad stone courtyard, echoes of old training sessions lingering in the cold air.",
-      exits: [Exit(East, "Kaer Morhen Gate")],
+      name: RoomName("Keep Courtyard"),
+      description: Description(
+        "A broad stone courtyard, echoes of old training sessions lingering in the cold air.",
+      ),
+      exits: [Exit(East, RoomName("Kaer Morhen Gate"))],
       items: [Item("weathered practice shield")],
     )
-  [clearing, armory, room, courtyard]
+  let forge =
+    Room(
+      name: RoomName("Witcher's Forge"),
+      description: Description(
+        "The heat of the coals mixes with the scent of oils and steel — a place where blades are reborn.",
+      ),
+      exits: [
+        Exit(West, RoomName("Old Armory")),
+        Exit(North, RoomName("Keep Courtyard")),
+      ],
+      items: [Item("tempered steel ingot")],
+    )
+
+  let library =
+    Room(
+      name: RoomName("Kaer Morhen Library"),
+      description: Description(
+        "Dusty tomes and brittle scrolls detailing monster lore fill towering wooden shelves.",
+      ),
+      exits: [
+        Exit(South, RoomName("Training Yard")),
+        Exit(East, RoomName("Battlements")),
+      ],
+      items: [Item("ancient bestiary")],
+    )
+
+  let battlements =
+    Room(
+      name: RoomName("Battlements"),
+      description: Description(
+        "High atop the old keep, the wind cuts cold as you overlook the valley below.",
+      ),
+      exits: [
+        Exit(West, RoomName("Kaer Morhen Library")),
+        Exit(South, RoomName("Keep Courtyard")),
+      ],
+      items: [Item("eagle feather")],
+    )
+
+  [clearing, armory, gate, courtyard, forge, library, battlements]
 }
