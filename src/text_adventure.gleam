@@ -1,34 +1,26 @@
-//// Text Adventure (Gleam on the BEAM)
+//// Text Adventure Main Loop (Gleam on the BEAM)
 ////
-//// This game reads directly from standard input using the `in` package,
-//// running entirely on the BEAM with no external runtime required.
+//// This module launches the game, sets up the initial `GameState`,
+//// and runs the interactive loop that reads player input from stdin.
+//// It relies on the `in` package for direct line-by-line input on the BEAM,
+//// with no external runtimes required.
 ////
-//// Available Player Commands:
-//// • "look"
-////     View the current room's name and description.
+//// Player Command Summary:
+//// • look — view the current room
+//// • go <direction> — move to an adjacent room (north, south, east, west, up, down)
+//// • take <item> — pick up an item in the room
+//// • examine <item> — inspect an item for more detail
+//// • use <item> — attempt to use an item in your inventory
+//// • inventory — list items you are carrying
+//// • help — show available commands
+//// • quit — exit the game
 ////
-//// • "go <direction>"
-////     Move to an adjacent room. Valid directions: north, south, east, west.
-////     Parsed into a `Move(Direction)` command.
-////
-//// • "take <item>"
-////     Pick up an item from the current room and add it to your inventory.
-////
-//// • "inventory"
-////     Show all items you're currently carrying.
-////
-//// • "help"
-////     Display available commands and short explanations.
-////
-//// • "quit"
-////     Exit the game loop and end the program cleanly.
-////
-//// How the modules work together:
-////   - parser.gleam converts raw text input into `Command` values.
-////   - game.gleam updates the `GameState` based on those commands.
-////   - world.gleam defines the rooms, items, and exits.
-////   - This file sets up the initial state and runs the interactive loop using
-////     direct stdin input via the `in` package.
+//// Module Overview:
+////   - parser.gleam converts raw text into `Command` values.
+////   - game.gleam interprets commands and updates `GameState`.
+////   - world.gleam defines the static world: rooms, exits, items.
+////   - text_adventure.gleam (this file) manages input/output and
+////     drives the main interactive loop.
 
 import game.{type GameState, GameState, Message, Quit, RoomName, update}
 import gleam/io
