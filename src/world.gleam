@@ -4,7 +4,8 @@
 //// the game world. `initial_world` returns the complete list of rooms.
 
 import game.{
-  type Room, Description, East, Exit, Item, North, Room, RoomName, South, West,
+  type Room, Description, Down, East, Exit, Item, North, Room, RoomName, South,
+  Up, West,
 }
 
 /// Name of the room where the player begins the game
@@ -34,6 +35,7 @@ pub fn initial_world() -> List(Room) {
       exits: [
         Exit(South, RoomName("Kaer Morhen Gate")),
         Exit(East, RoomName("Old Armory")),
+        Exit(North, RoomName("Kaer Morhen Library")),
       ],
       items: [Item("broken training sword")],
     )
@@ -52,7 +54,10 @@ pub fn initial_world() -> List(Room) {
       description: Description(
         "A broad stone courtyard, echoes of old training sessions lingering in the cold air.",
       ),
-      exits: [Exit(East, RoomName("Kaer Morhen Gate"))],
+      exits: [
+        Exit(North, RoomName("Vesemir's Quarters")),
+        Exit(East, RoomName("Kaer Morhen Gate")),
+      ],
       items: [Item("weathered practice shield")],
     )
   let forge =
@@ -75,6 +80,7 @@ pub fn initial_world() -> List(Room) {
         "Dusty tomes and brittle scrolls detailing monster lore fill towering wooden shelves.",
       ),
       exits: [
+        Exit(Down, RoomName("Kaer Morhen Catacombs")),
         Exit(South, RoomName("Training Yard")),
         Exit(East, RoomName("Battlements")),
       ],
@@ -94,5 +100,35 @@ pub fn initial_world() -> List(Room) {
       items: [Item("eagle feather")],
     )
 
-  [clearing, armory, gate, courtyard, forge, library, battlements]
+  let vesemir =
+    Room(
+      name: RoomName("Vesemir's Quarters"),
+      description: Description(
+        "A modest chamber lined with worn maps, old gear, and the quiet weight of a witcher’s long years.",
+      ),
+      exits: [Exit(South, RoomName("Keep Courtyard"))],
+      items: [Item("leather repair kit")],
+    )
+
+  let catacombs =
+    Room(
+      name: RoomName("Kaer Morhen Catacombs"),
+      description: Description(
+        "A cold stone chamber beneath the keep. Dusty alcoves line the walls, holding the remnants of witchers long gone. The air is unnervingly still.",
+      ),
+      exits: [Exit(Up, RoomName("Kaer Morhen Library"))],
+      items: [Item("tarnished wolf pendant")],
+    )
+
+  [
+    clearing,
+    armory,
+    gate,
+    courtyard,
+    forge,
+    library,
+    battlements,
+    vesemir,
+    catacombs,
+  ]
 }

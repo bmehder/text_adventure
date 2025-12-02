@@ -7,6 +7,8 @@
 ////  - go <direction>
 ////  - help
 ////  - quit
+////  - inspect <item>
+////  - use <item>
 ////  - <anything else> → Unknown(command_text)
 ////
 //// This module only handles text → Command parsing.
@@ -33,6 +35,8 @@ pub fn parse(input: String) -> game.Command {
 
     ["go", ..rest] -> parse_move(rest, cleaned_input)
     ["take", ..rest] -> parse_take(rest, cleaned_input)
+    ["examine", ..rest] -> parse_examine(rest, cleaned_input)
+    ["use", ..rest] -> parse_use(rest, cleaned_input)
 
     _ -> game.Unknown(cleaned_input)
   }
@@ -57,6 +61,30 @@ fn parse_take(rest: List(String), raw: String) -> game.Command {
   }
 }
 
+/// Parse an `inspect` command. Everything after "inspect" is treated as
+/// the item name. If no name is provided, returns `Unknown`.
+fn parse_examine(rest: List(String), raw: String) -> game.Command {
+  case rest {
+    [] -> game.Unknown(raw)
+    _ -> {
+      let name = string.join(rest, with: " ")
+      game.Examine(name)
+    }
+  }
+}
+
+/// Parse a `use` command. Everything after "use" is treated as the
+/// item name. If no name is provided, returns `Unknown`.
+fn parse_use(rest: List(String), raw: String) -> game.Command {
+  case rest {
+    [] -> game.Unknown(raw)
+    _ -> {
+      let name = string.join(rest, with: " ")
+      game.Use(name)
+    }
+  }
+}
+
 /// Parse a `go` command. Expects a single direction ("north", "south",
 /// "east", "west"). Anything else becomes `Unknown`.
 fn parse_move(rest: List(String), raw: String) -> game.Command {
@@ -65,6 +93,8 @@ fn parse_move(rest: List(String), raw: String) -> game.Command {
     ["south"] -> game.Move(game.South)
     ["east"] -> game.Move(game.East)
     ["west"] -> game.Move(game.West)
+    ["up"] -> game.Move(game.Up)
+    ["down"] -> game.Move(game.Down)
     _ -> game.Unknown(raw)
   }
 }

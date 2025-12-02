@@ -27,6 +27,8 @@ pub type Direction {
   East
   South
   West
+  Up
+  Down
 }
 
 /// A directional link to another room
@@ -44,6 +46,8 @@ pub type Command {
   Look
   Move(Direction)
   Inventory
+  Examine(String)
+  Use(String)
   Take(Item)
   Unknown(String)
   Quit
@@ -75,12 +79,14 @@ pub fn update(state: GameState, command: Command) -> #(GameState, Message) {
   case command {
     Look -> handle_look(state)
     Move(direction) -> handle_move(state, direction)
-    Take(item) -> handle_take(state, item)
     Inventory -> handle_inventory(state)
+    Examine(name) -> handle_examine(state, name)
+    Use(name) -> handle_use(state, name)
+    Take(item) -> handle_take(state, item)
     Help -> #(
       state,
       Message(
-        "Available commands:\nlook\ngo <direction>\ntake <item>\ninventory\nhelp\nquit",
+        "Available commands:\nlook\ngo <direction> (north, south, east, west, up, down)\ntake <item>\nexamine <item>\nuse <item>\ninventory\nhelp\nquit",
       ),
     )
     Quit -> #(state, Message("Goodbye."))
@@ -95,6 +101,8 @@ fn direction_to_string(dir: Direction) -> String {
     East -> "east"
     South -> "south"
     West -> "west"
+    Up -> "up"
+    Down -> "down"
   }
 }
 
@@ -256,5 +264,100 @@ fn handle_inventory(state: GameState) -> #(GameState, Message) {
 
       #(state, Message("You are carrying: " <> list_text))
     }
+  }
+}
+
+/// Look up a descriptive lore text for an item name
+fn describe_item(name: String) -> String {
+  case string.lowercase(name) {
+    "witcher medallion" ->
+      "A wolf-school medallion, its silver worn smooth by years of contracts.\nWhen you hold it still, a faint vibration hums through the metal — magic nearby."
+
+    "broken training sword" ->
+      "A battered practice blade, its edge notched beyond repair.\nCountless apprentices must have swung it before it finally gave out."
+
+    "rusty short sword" ->
+      "A once-serviceable short sword, now coated in a reddish bloom of rust.\nIt might still cut in a pinch… but you wouldn’t bet your life on it."
+
+    "weathered practice shield" ->
+      "A round training shield, scarred and cracked from years of drills.\nSomeone painted a faded wolf on its face long ago."
+
+    "tempered steel ingot" ->
+      "A heavy ingot of properly tempered steel, still warm to the touch.\nPerfect for reforging a blade — if you know what you’re doing."
+
+    "ancient bestiary" ->
+      "A brittle leather-bound tome filled with sketches and notes on monsters.\nSeveral pages crumble slightly as you turn them, yet the knowledge holds true."
+
+    "eagle feather" ->
+      "A pristine feather carried on a cold mountain wind.\nIts barbs shimmer faintly, as if touched by something more than nature."
+
+    _ -> "You see nothing special about it."
+  }
+}
+
+/// Attempt to examine an item either in the room or in inventory
+fn handle_examine(state: GameState, name: String) -> #(GameState, Message) {
+  let GameState(current_room, rooms, inventory) = state
+  let RoomName(room_name) = current_room
+
+  // Find the room
+  case find_room(rooms, room_name) {
+    Error(Nil) -> #(state, Message("You are nowhere."))
+
+    Ok(Room(_, _, _, room_items)) -> {
+      let needle = string.lowercase(name)
+
+      let item_in_room =
+        list.find(room_items, fn(item) {
+          let Item(n) = item
+          string.lowercase(n) == needle
+        })
+
+      let item_in_inventory =
+        list.find(inventory, fn(item) {
+          let Item(n) = item
+          string.lowercase(n) == needle
+        })
+
+      case item_in_room {
+        Ok(Item(_)) -> #(state, Message(describe_item(name)))
+
+        Error(Nil) -> {
+          case item_in_inventory {
+            Ok(Item(_)) -> #(state, Message(describe_item(name)))
+            Error(Nil) -> #(state, Message("You don't see that here."))
+          }
+        }
+      }
+    }
+  }
+}
+
+/// Attempt to use an item. Now checks inventory before applying effect.
+fn handle_use(state: GameState, name: String) -> #(GameState, Message) {
+  let GameState(_, _, inventory) = state
+  let needle = string.lowercase(name)
+
+  // Check if the item is in the inventory
+  let item_in_inventory =
+    list.find(inventory, fn(item) {
+      let Item(n) = item
+      string.lowercase(n) == needle
+    })
+
+  case item_in_inventory {
+    Error(Nil) -> #(state, Message("You must pick it up first."))
+
+    Ok(Item(_)) ->
+      case needle {
+        "witcher medallion" -> #(
+          state,
+          Message(
+            "You hold the wolf medallion still.\nA faint vibration hums through the metal — something magical stirs nearby.",
+          ),
+        )
+
+        _ -> #(state, Message("You can't use that right now."))
+      }
   }
 }
